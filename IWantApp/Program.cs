@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSqlServer<ApplicationDbContext>(builder.Configuration["ConnectionString:IWantDb"]);
@@ -92,6 +93,10 @@ app.Map("/error", (HttpContext http) =>
         if(error is SqlException)
         {
             return Results.Problem(title: "Database out", statusCode:500);
+        }
+        if (error is BadHttpRequestException)
+        {
+            return Results.Problem(title: "Error to convert sent data", statusCode: 500);
         }
     }
     return Results.Problem(title: "Ocorreu um erro", statusCode: 500);
