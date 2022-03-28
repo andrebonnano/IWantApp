@@ -14,11 +14,16 @@ public class TokenPost
     public static Delegate Handle => Action;
 
     [AllowAnonymous]
-    public static IResult Action(LoginRequest loginRequest, IConfiguration configuration,  UserManager<IdentityUser> userManager, ILogger<TokenPost> log)
+    public static IResult Action(
+        LoginRequest loginRequest, 
+        IConfiguration configuration,  
+        UserManager<IdentityUser> userManager, 
+        ILogger<TokenPost> log,
+        IWebHostEnvironment environment)
     {
-        log.LogInformation("Getting Token");
-        log.LogWarning("Some Warning");
-        log.LogError("Some error");
+        //log.LogInformation("Getting Token");
+        //log.LogWarning("Some Warning");
+        //log.LogError("Some error");
 
         var user = userManager.FindByEmailAsync(loginRequest.Email).Result;
         if (user == null)
@@ -35,13 +40,15 @@ public class TokenPost
         subject.AddClaims(claims);
 
         var key = Encoding.ASCII.GetBytes(configuration["JwtBearerTokenSettings:SecretKey"]);
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = subject,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
             Audience = configuration["JwtBearerTokenSettings:Audience"],
             Issuer = configuration["JwtBearerTokenSettings:Issuer"],
-            Expires = DateTime.UtcNow.AddMinutes(2)
+            Expires = environment.IsDevelopment() || environment.IsStaging() ?
+                DateTime.UtcNow.AddMonths(3) : DateTime.UtcNow.AddMinutes(2)
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
