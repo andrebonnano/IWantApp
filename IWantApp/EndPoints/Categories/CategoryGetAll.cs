@@ -1,5 +1,6 @@
 ﻿using IWantApp.Domain.Products;
 using IWantApp.Infra.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IWantApp.EndPoints.Categories;
 
@@ -8,6 +9,8 @@ public class CategoryGetAll
     public static string Template => "/categories";
     public static string[] Methods => new string[] { HttpMethod.Get.ToString() };
     public static Delegate Handle => Action;
+
+    [Authorize(Policy = "EmployeePolicy")]
 
     public static IResult Action(ApplicationDbContext context)
     {
